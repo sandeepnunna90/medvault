@@ -1,0 +1,17 @@
+# Backend
+fastapi
+uvicorn
+python-multipart
+supabase
+anthropic
+pytesseract
+PyMuPDF
+spacy
+fpdf2
+pydantic
+python-dotenv
+
+# Frontend
+streamlit
+plotly
+requests
