@@ -26,16 +26,20 @@ medvault/                    <- repo root
 
 ## Steps
 
-- [ ] 1. Update .gitignore (add medvault/ venv, __pycache__, .DS_Store)
-- [ ] 2. Create folder structure (backend/, frontend/, tests/, __init__.py files)
-- [ ] 3. Create .env.example
-- [ ] 4. Build backend/main.py (FastAPI, CORS, /health, Supabase client)
-- [ ] 5. Build frontend/app.py (Streamlit login/signup/dashboard)
-- [ ] 6. Create render.yaml
-- [ ] 7. Create .streamlit/config.toml (optional theme)
-- [ ] 8. Manual Supabase setup (project, disable email confirmation for dev)
-- [ ] 9. Deploy to Render + Streamlit Cloud
-- [ ] 10. Verify end-to-end
+- [x] 1. Update .gitignore (add medvault/ venv, __pycache__, .DS_Store)
+- [x] 2. Create folder structure (backend/, frontend/, tests/, __init__.py files)
+- [x] 3. Create .env.example
+- [x] 4. Build backend/main.py (FastAPI, CORS, /health, Supabase client)
+- [x] 5. Build frontend/app.py (Streamlit login/signup/dashboard)
+- [x] 6. Create render.yaml
+- [x] 7. Create .streamlit/config.toml (optional theme)
+- [x] 8. Manual Supabase setup (project, disable email confirmation for dev)
+- [x] 9. Deploy to Render + Streamlit Cloud
+- [x] 10. Verify end-to-end
+
+## Deployed URLs
+- Backend: https://medvault-rovb.onrender.com
+- Frontend: https://medvault-io.streamlit.app
 
 ## Key Decisions
 
