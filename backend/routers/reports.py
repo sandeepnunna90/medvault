@@ -8,6 +8,7 @@ import uuid
 from backend.pdf_parser import extract_text_from_pdf
 from backend.ocr_service import image_to_text
 from backend.pii_stripper import strip_pii
+from backend.extraction import extract_lab_results
 
 load_dotenv()
 
@@ -88,24 +89,36 @@ async def upload_report(
 
         cleaned_text = strip_pii(ocr_text)
 
-        # 4. Update row with results
+        # 4. Claude extraction
+        extracted_tests = extract_lab_results(cleaned_text)
+
+        # 5. Update report row with OCR results
         supabase.table("reports").update({
             "ocr_text": ocr_text,
             "cleaned_text": cleaned_text,
             "status": "done",
         }).eq("id", report_id).execute()
 
+        # 6. Insert extracted lab results
+        if extracted_tests:
+            rows = [
+                {**test, "report_id": report_id, "user_id": user_id}
+                for test in extracted_tests
+            ]
+            supabase.table("lab_results").insert(rows).execute()
+
     except Exception as e:
         supabase.table("reports").update({
             "status": "error",
             "error_message": str(e),
         }).eq("id", report_id).execute()
-        raise HTTPException(status_code=500, detail=f"OCR failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Processing failed: {e}")
 
     return {
         "report_id": report_id,
         "file_name": file.filename,
         "ocr_text": ocr_text,
         "cleaned_text": cleaned_text,
+        "extracted_tests": extracted_tests,
         "status": "done",
     }
