@@ -35,13 +35,14 @@ frontend/
 - [x] 7. Update frontend/app.py (store access_token)
 - [x] 8. Build frontend/pages/upload.py — upload UI with privacy consent notice
 - [x] 9. Update render.yaml (apt-get tesseract-ocr)
-- [ ] 10. Deploy + verify end-to-end (pending — deploy to Render after local test)
+- [x] 10. Deploy + verify end-to-end — deployed to Render + Streamlit Cloud, tested with Drlogy CBC PDF
 
 ## Completed Notes
 - Tested locally with Drlogy CBC sample PDF — OCR extraction and PII stripping working
 - Migrations moved to supabase/migrations/ (Supabase CLI convention) instead of database/migrations/
 - supabase/.temp/ added to .gitignore
-- BACKEND_URL changed to localhost for local testing (change back to Render URL before deploying)
+- BACKEND_URL removed from .env — defaults to localhost:8000 locally, set via Streamlit Cloud secrets for production
+- Streamlit Cloud requires manual reboot if secrets aren't set before first deploy; auto-deploys on git push thereafter
 
 ## Key Decisions
 - Auth: Streamlit sends Supabase JWT as Bearer token; FastAPI verifies via supabase.auth.get_user(token)
