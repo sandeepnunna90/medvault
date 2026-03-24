@@ -18,6 +18,8 @@ supabase = get_supabase_client()
 
 if "user" not in st.session_state:
     st.session_state.user = None
+if "access_token" not in st.session_state:
+    st.session_state.access_token = None
 
 
 def show_auth_page():
@@ -35,6 +37,7 @@ def show_auth_page():
                     {"email": email, "password": password}
                 )
                 st.session_state.user = response.user
+                st.session_state.access_token = response.session.access_token
                 st.rerun()
             except Exception as e:
                 st.error(f"Login failed: {e}")
@@ -58,6 +61,7 @@ def show_dashboard():
     if st.button("Log Out"):
         supabase.auth.sign_out()
         st.session_state.user = None
+        st.session_state.access_token = None
         st.rerun()
 
 

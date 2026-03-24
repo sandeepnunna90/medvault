@@ -4,6 +4,8 @@ from supabase import create_client, Client
 from dotenv import load_dotenv
 import os
 
+from backend.routers import reports
+
 load_dotenv()
 
 app = FastAPI(title="MedVault API")
@@ -20,6 +22,8 @@ supabase: Client = create_client(
     os.environ["SUPABASE_URL"],
     os.environ["SUPABASE_SERVICE_ROLE_KEY"],
 )
+
+app.include_router(reports.router)
 
 
 @app.get("/health")
