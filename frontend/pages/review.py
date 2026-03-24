@@ -96,8 +96,8 @@ display_df = df[[
 })
 
 st.dataframe(
-    display_df.style.applymap(highlight_status, subset=["Status"]),
-    use_container_width=True,
+    display_df.style.map(highlight_status, subset=["Status"]),
+    width="stretch",
     hide_index=True,
 )
 

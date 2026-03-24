@@ -23,7 +23,15 @@ supabase/migrations/
 - [x] 4. Update backend/routers/reports.py (call extraction, insert lab_results)
 - [x] 5. Build frontend/pages/review.py (report selector + styled dataframe)
 - [x] 6. Test locally — uploaded CBC PDF, 14 tests extracted at 97% confidence, color-coded table displayed
-- [ ] 7. Commit + deploy
+- [x] 7. Commit + deploy — pushed to GitHub, Render auto-deploying, Streamlit Cloud auto-deploying
+
+## Completed Notes
+- 14 tests extracted from Drlogy CBC PDF at 97% confidence
+- Color-coded status (High=red, Low=orange, Normal=green) working correctly
+- Fixed: review page RLS — must pass JWT via `supabase.postgrest.auth(access_token)`
+- Fixed: report selector key collision — use full timestamp not just date
+- Fixed: applymap → map (pandas deprecation), use_container_width → width='stretch' (Streamlit deprecation)
+- Known issues deferred to Day 6: delete reports, session persistence on refresh, Google OAuth
 
 ## Key Decisions
 - Extraction is auto-triggered during upload (not a separate endpoint) — single button UX
