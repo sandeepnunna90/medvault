@@ -15,10 +15,16 @@ frontend/
 All data already exists in `lab_results`. Queries run directly from Streamlit using anon key + JWT. No new migrations or FastAPI endpoints.
 
 ## Steps
-- [ ] 1. Build `frontend/pages/category.py` — auth guard, back button, data fetch by category, styled table
-- [ ] 2. Update `show_dashboard()` in `frontend/app.py` — summary metrics, category card grid, navigation
-- [ ] 3. Test locally — upload report, confirm cards appear, click card, confirm detail page, back button
-- [ ] 4. Commit + push + verify on Streamlit Cloud
+- [x] 1. Built `frontend/pages/category.py` initially — later removed (dashboard covers everything)
+- [x] 2. Update `show_dashboard()` in `frontend/app.py` — summary metrics + expandable category sections
+- [x] 3. Tested locally — dashboard shows metrics, category expanders with color-coded tables
+- [x] 4. Commit + push
+
+## Completed Notes
+- Switched from category card grid → category detail page navigation to a single dashboard with expandable sections per category (Option A)
+- category.py was built then removed — dashboard renders all categories inline
+- All lab_results queried directly from Streamlit using anon key + JWT (no new backend endpoints)
+- `get_status` and `highlight_status` helpers added to app.py
 
 ## Dashboard Design (`app.py`)
 
