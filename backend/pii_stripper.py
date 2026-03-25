@@ -5,7 +5,6 @@ _PATTERNS = [
     (r"\b\d{3}-\d{2}-\d{4}\b", "[SSN]"),                          # SSN
     (r"\b\d{3}/\d{2}/\d{4}\b", "[SSN]"),                          # SSN alt
     (r"\b(DOB|Date of Birth)\s*[:\-]?\s*\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}\b", "[DOB]"),
-    (r"\b\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4}\b", "[DATE]"),           # generic dates
     (r"\b(\+1[-.\s]?)?\(?\d{3}\)?[-.\s]\d{3}[-.\s]\d{4}\b", "[PHONE]"),  # US phone
     (r"\b(\+?\d{1,3}[-.\s]?)?\d{10}\b", "[PHONE]"),               # 10-digit international phone
     (r"[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}", "[EMAIL]"),

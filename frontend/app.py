@@ -135,6 +135,9 @@ def show_dashboard():
                     width="stretch",
                     hide_index=True,
                 )
+                if st.button("📈 Trends", key=f"trends_{category}"):
+                    st.session_state["selected_category"] = category
+                    st.switch_page("pages/trends.py")
 
     st.divider()
 

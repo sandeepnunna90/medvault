@@ -23,49 +23,55 @@ st.info(
     "before any AI processing."
 )
 
-uploaded_file = st.file_uploader(
-    "Choose a file",
+uploaded_files = st.file_uploader(
+    "Choose file(s)",
     type=["pdf", "jpg", "jpeg", "png"],
-    help="Upload a lab report PDF or photo",
+    accept_multiple_files=True,
+    help="Upload one or more lab report PDFs or photos",
 )
 
-if uploaded_file is not None:
-    st.write(f"**File:** {uploaded_file.name} ({uploaded_file.size / 1024:.1f} KB)")
+if uploaded_files:
+    for f in uploaded_files:
+        st.write(f"**{f.name}** ({f.size / 1024:.1f} KB)")
 
     if st.button("Extract Text", type="primary"):
-        with st.spinner("Uploading and extracting text — this may take up to 60 seconds..."):
-            try:
-                response = requests.post(
-                    f"{BACKEND_URL}/reports/upload",
-                    headers={"Authorization": f"Bearer {st.session_state.access_token}"},
-                    files={"file": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type)},
-                    timeout=60,
-                )
-                response.raise_for_status()
-                data = response.json()
+        for uploaded_file in uploaded_files:
+            st.markdown(f"---\n**Processing: {uploaded_file.name}**")
+            with st.spinner(f"Uploading {uploaded_file.name} — this may take up to 60 seconds..."):
+                try:
+                    response = requests.post(
+                        f"{BACKEND_URL}/reports/upload",
+                        headers={"Authorization": f"Bearer {st.session_state.access_token}"},
+                        files={"file": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type)},
+                        timeout=60,
+                    )
+                    response.raise_for_status()
+                    data = response.json()
 
-                st.success("Extraction complete!")
+                    st.success(f"Extraction complete — {len(data.get('extracted_tests', []))} test(s) found.")
 
-                st.subheader("Raw OCR Text")
-                st.text_area(
-                    label="Raw text (before PII removal)",
-                    value=data.get("ocr_text", ""),
-                    height=300,
-                    disabled=True,
-                )
+                    with st.expander("Raw OCR Text"):
+                        st.text_area(
+                            label="Raw text (before PII removal)",
+                            value=data.get("ocr_text", ""),
+                            height=300,
+                            disabled=True,
+                            key=f"ocr_{uploaded_file.name}",
+                        )
 
-                st.subheader("Cleaned Text (PII Removed)")
-                st.text_area(
-                    label="Cleaned text",
-                    value=data.get("cleaned_text", ""),
-                    height=300,
-                    disabled=True,
-                )
+                    with st.expander("Cleaned Text (PII Removed)"):
+                        st.text_area(
+                            label="Cleaned text",
+                            value=data.get("cleaned_text", ""),
+                            height=300,
+                            disabled=True,
+                            key=f"cleaned_{uploaded_file.name}",
+                        )
 
-            except requests.exceptions.Timeout:
-                st.error("Request timed out. The file may be too large or the server is cold-starting. Try again in 60 seconds.")
-            except requests.exceptions.HTTPError as e:
-                detail = e.response.json().get("detail", str(e)) if e.response else str(e)
-                st.error(f"Upload failed: {detail}")
-            except Exception as e:
-                st.error(f"Unexpected error: {e}")
+                except requests.exceptions.Timeout:
+                    st.error(f"{uploaded_file.name}: Request timed out. Try again in 60 seconds.")
+                except requests.exceptions.HTTPError as e:
+                    detail = e.response.json().get("detail", str(e)) if e.response else str(e)
+                    st.error(f"{uploaded_file.name}: Upload failed — {detail}")
+                except Exception as e:
+                    st.error(f"{uploaded_file.name}: Unexpected error — {e}")

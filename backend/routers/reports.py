@@ -4,6 +4,7 @@ from supabase import create_client, Client
 from dotenv import load_dotenv
 import os
 import uuid
+import traceback
 
 from backend.pdf_parser import extract_text_from_pdf
 from backend.ocr_service import image_to_text
@@ -108,10 +109,12 @@ async def upload_report(
             supabase.table("lab_results").insert(rows).execute()
 
     except Exception as e:
-        supabase.table("reports").update({
-            "status": "error",
-            "error_message": str(e),
-        }).eq("id", report_id).execute()
+        traceback.print_exc()
+        try:
+            supabase.table("reports").delete().eq("id", report_id).execute()
+            supabase.storage.from_("reports").remove([storage_path])
+        except Exception:
+            pass
         raise HTTPException(status_code=500, detail=f"Processing failed: {e}")
 
     return {
