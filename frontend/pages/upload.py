@@ -33,7 +33,7 @@ if uploaded_file is not None:
     st.write(f"**File:** {uploaded_file.name} ({uploaded_file.size / 1024:.1f} KB)")
 
     if st.button("Extract Text", type="primary"):
-        with st.spinner("Uploading and extracting text — this may take up to 30 seconds..."):
+        with st.spinner("Uploading and extracting text — this may take up to 60 seconds..."):
             try:
                 response = requests.post(
                     f"{BACKEND_URL}/reports/upload",
@@ -63,7 +63,7 @@ if uploaded_file is not None:
                 )
 
             except requests.exceptions.Timeout:
-                st.error("Request timed out. The file may be too large or the server is cold-starting. Try again in 30 seconds.")
+                st.error("Request timed out. The file may be too large or the server is cold-starting. Try again in 60 seconds.")
             except requests.exceptions.HTTPError as e:
                 detail = e.response.json().get("detail", str(e)) if e.response else str(e)
                 st.error(f"Upload failed: {detail}")
