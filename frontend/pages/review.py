@@ -1,18 +1,18 @@
 import streamlit as st
 from supabase import create_client
-from dotenv import load_dotenv
 import pandas as pd
-import os
-
-load_dotenv()
+import requests
+import sys, os
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from auth import restore_session
 
 st.set_page_config(page_title="Review Results", page_icon="🔬")
 
-if not st.session_state.get("user") or not st.session_state.get("access_token"):
+if not restore_session():
     st.warning("Please log in first.")
     st.stop()
 
-supabase = create_client(os.environ["SUPABASE_URL"], os.environ["SUPABASE_ANON_KEY"])
+supabase = create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_ANON_KEY"])
 supabase.postgrest.auth(st.session_state.access_token)
 
 
@@ -58,6 +58,33 @@ report_options = {
 }
 selected_label = st.selectbox("Select report", list(report_options.keys()))
 report_id = report_options[selected_label]
+
+# Delete report
+with st.expander("Danger zone"):
+    st.warning("Deleting this report will permanently remove it and all extracted results.")
+    if st.button("Delete this report", type="primary"):
+        st.session_state["confirm_delete"] = report_id
+
+if st.session_state.get("confirm_delete") == report_id:
+    st.error(f"Are you sure you want to delete **{selected_label}**?")
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("Yes, delete it"):
+            backend_url = st.secrets.get("BACKEND_URL", "http://localhost:8000")
+            resp = requests.delete(
+                f"{backend_url}/reports/{report_id}",
+                headers={"Authorization": f"Bearer {st.session_state.access_token}"},
+            )
+            if resp.status_code == 200:
+                st.session_state.pop("confirm_delete", None)
+                st.success("Report deleted.")
+                st.rerun()
+            else:
+                st.error(f"Failed to delete: {resp.text}")
+    with col2:
+        if st.button("Cancel"):
+            st.session_state.pop("confirm_delete", None)
+            st.rerun()
 
 # Fetch lab results for selected report
 results_resp = (

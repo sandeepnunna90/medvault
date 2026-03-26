@@ -1,16 +1,14 @@
 import streamlit as st
 import requests
-import os
-from dotenv import load_dotenv
+import sys, os
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from auth import restore_session
 
-load_dotenv()
-
-BACKEND_URL = os.environ.get("BACKEND_URL", "http://localhost:8000")
+BACKEND_URL = st.secrets.get("BACKEND_URL", "http://localhost:8000")
 
 st.set_page_config(page_title="Upload Report", page_icon="📄")
 
-# Guard: must be logged in
-if not st.session_state.get("user") or not st.session_state.get("access_token"):
+if not restore_session():
     st.warning("Please log in first.")
     st.stop()
 

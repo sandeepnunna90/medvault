@@ -1,8 +1,9 @@
 import streamlit as st
 from supabase import create_client, Client
-from dotenv import load_dotenv
 import pandas as pd
-import os
+import sys, os
+sys.path.append(os.path.dirname(__file__))
+from auth import restore_session, get_controller, COOKIE_NAME
 
 
 def get_status(row) -> str:
@@ -23,23 +24,17 @@ def highlight_status(val: str) -> str:
     colors = {"High": "color: red", "Low": "color: orange", "Normal": "color: green"}
     return colors.get(val, "")
 
-load_dotenv()
-
 
 @st.cache_resource
 def get_supabase_client() -> Client:
     return create_client(
-        os.environ["SUPABASE_URL"],
-        os.environ["SUPABASE_ANON_KEY"],
+        st.secrets["SUPABASE_URL"],
+        st.secrets["SUPABASE_ANON_KEY"],
     )
 
 
 supabase = get_supabase_client()
-
-if "user" not in st.session_state:
-    st.session_state.user = None
-if "access_token" not in st.session_state:
-    st.session_state.access_token = None
+restore_session()
 
 
 def show_auth_page():
@@ -48,19 +43,39 @@ def show_auth_page():
 
     tab_login, tab_signup = st.tabs(["Log In", "Sign Up"])
 
+    # Handle Google OAuth callback (access_token in query params)
+    if "access_token" in st.query_params:
+        token = st.query_params["access_token"]
+        try:
+            user_response = supabase.auth.get_user(token)
+            st.session_state.user = user_response.user
+            st.session_state.access_token = token
+            get_controller().set(COOKIE_NAME, token, max_age=604800)
+            st.query_params.clear()
+            st.rerun()
+        except Exception:
+            st.error("Google login failed. Please try again.")
+
     with tab_login:
         email = st.text_input("Email", key="login_email")
         password = st.text_input("Password", type="password", key="login_password")
         if st.button("Log In"):
-            try:
-                response = supabase.auth.sign_in_with_password(
-                    {"email": email, "password": password}
-                )
-                st.session_state.user = response.user
-                st.session_state.access_token = response.session.access_token
-                st.rerun()
-            except Exception as e:
-                st.error(f"Login failed: {e}")
+            with st.spinner("Logging in..."):
+                try:
+                    response = supabase.auth.sign_in_with_password(
+                        {"email": email, "password": password}
+                    )
+                    st.session_state.user = response.user
+                    st.session_state.access_token = response.session.access_token
+                    get_controller().set(COOKIE_NAME, response.session.access_token, max_age=604800)
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Login failed: {e}")
+
+        # TODO: Enable Google OAuth once configured in Supabase dashboard
+        # st.divider()
+        # oauth_resp = supabase.auth.sign_in_with_oauth({"provider": "google", ...})
+        # st.link_button("Continue with Google", oauth_resp.url)
 
     with tab_signup:
         email = st.text_input("Email", key="signup_email")
@@ -79,7 +94,6 @@ def show_dashboard():
     st.title("MedVault Dashboard")
     st.write(f"Welcome, {st.session_state.user.email}")
 
-    # Fetch summary data
     reports_resp = (
         supabase.table("reports")
         .select("id", count="exact")
@@ -98,7 +112,6 @@ def show_dashboard():
     results_data = results_resp.data or []
     df = pd.DataFrame(results_data) if results_data else pd.DataFrame()
 
-    # Summary metrics
     col1, col2, col3 = st.columns(3)
     col1.metric("Reports Uploaded", total_reports)
     col2.metric("Tests Extracted", len(results_data))
@@ -143,12 +156,13 @@ def show_dashboard():
 
     if st.button("Log Out"):
         supabase.auth.sign_out()
+        get_controller().remove(COOKIE_NAME)
         st.session_state.user = None
         st.session_state.access_token = None
         st.rerun()
 
 
-if st.session_state.user:
+if st.session_state.get("user"):
     show_dashboard()
 else:
     show_auth_page()

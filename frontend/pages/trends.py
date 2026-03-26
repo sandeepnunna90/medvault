@@ -1,19 +1,18 @@
 import streamlit as st
 from supabase import create_client
-from dotenv import load_dotenv
 import pandas as pd
 import plotly.graph_objects as go
-import os
-
-load_dotenv()
+import sys, os
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from auth import restore_session
 
 st.set_page_config(page_title="Trends", page_icon="📈")
 
-if not st.session_state.get("user") or not st.session_state.get("access_token"):
+if not restore_session():
     st.warning("Please log in first.")
     st.stop()
 
-supabase = create_client(os.environ["SUPABASE_URL"], os.environ["SUPABASE_ANON_KEY"])
+supabase = create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_ANON_KEY"])
 supabase.postgrest.auth(st.session_state.access_token)
 
 # Fetch all lab results

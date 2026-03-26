@@ -125,3 +125,30 @@ async def upload_report(
         "extracted_tests": extracted_tests,
         "status": "done",
     }
+
+
+@router.delete("/{report_id}")
+async def delete_report(
+    report_id: str,
+    user_id: str = Depends(verify_token),
+):
+    supabase = get_supabase()
+
+    # Verify the report belongs to this user and get storage_path
+    result = (
+        supabase.table("reports")
+        .select("id, storage_path")
+        .eq("id", report_id)
+        .eq("user_id", user_id)
+        .execute()
+    )
+    if not result.data:
+        raise HTTPException(status_code=404, detail="Report not found")
+
+    storage_path = result.data[0]["storage_path"]
+
+    # Delete storage file via Storage API, then report row (lab_results cascade via FK)
+    supabase.storage.from_("reports").remove([storage_path])
+    supabase.table("reports").delete().eq("id", report_id).execute()
+
+    return {"deleted": report_id}
