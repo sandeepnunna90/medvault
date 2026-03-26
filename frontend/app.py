@@ -3,7 +3,7 @@ from supabase import create_client, Client
 import pandas as pd
 import sys, os
 sys.path.append(os.path.dirname(__file__))
-from auth import restore_session, get_controller, COOKIE_NAME
+from auth import restore_session, set_cookie, remove_cookie
 
 
 def get_status(row) -> str:
@@ -50,8 +50,8 @@ def show_auth_page():
             user_response = supabase.auth.get_user(token)
             st.session_state.user = user_response.user
             st.session_state.access_token = token
-            get_controller().set(COOKIE_NAME, token, max_age=604800)
             st.query_params.clear()
+            set_cookie(token)
             st.rerun()
         except Exception:
             st.error("Google login failed. Please try again.")
@@ -67,7 +67,7 @@ def show_auth_page():
                     )
                     st.session_state.user = response.user
                     st.session_state.access_token = response.session.access_token
-                    get_controller().set(COOKIE_NAME, response.session.access_token, max_age=604800)
+                    set_cookie(response.session.access_token)
                     st.rerun()
                 except Exception as e:
                     st.error(f"Login failed: {e}")
@@ -156,9 +156,10 @@ def show_dashboard():
 
     if st.button("Log Out"):
         supabase.auth.sign_out()
-        get_controller().remove(COOKIE_NAME)
         st.session_state.user = None
         st.session_state.access_token = None
+        st.session_state["_logged_out"] = True
+        remove_cookie()
         st.rerun()
 
 

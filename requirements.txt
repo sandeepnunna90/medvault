@@ -15,4 +15,3 @@ python-dotenv
 streamlit
 plotly
 requests
-streamlit-cookies-controller
